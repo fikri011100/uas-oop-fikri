@@ -1,6 +1,7 @@
 package com.bmcc;
 
 import com.bmcc.model.*;
+import com.bmcc.util.Config;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,10 +18,25 @@ public class Main {
     private static ArrayList<Organizer> organizers;
     private static ArrayList<Event> events;
     private static ArrayList<Transaction> transactions;
+    private static ArrayList<Announcement> announcements;
 
     public static void main(String[] args) {
         // write your code here
         scanner = new Scanner(System.in);
+
+        //setup arraylist
+        admins = new ArrayList<>();
+        player = new ArrayList<>();
+        organizers = new ArrayList<>();
+        events = new ArrayList<>();
+        transactions = new ArrayList<>();
+        announcements = new ArrayList<>();
+
+        Config config = new Config(admins, player, organizers, events, transactions, announcements);
+        if (!config.checkDataExist()) {
+            config.addDefaultFile();
+        }
+
         //menu awal
         String choiceMenu, username, password, choice, name;
         do {
@@ -81,9 +97,9 @@ public class Main {
         if (choice.equals("Admin")) {
             adminMenu();
         } else if (choice.equals("Organizer")) {
-            organizerMenu();
-        } else if (choice.equals("Player")) {
-            playerMenu(username);
+            organizerMenu(config);
+        } else {
+            playerMenu(username, config);
         }
     }
 
@@ -91,8 +107,9 @@ public class Main {
 
     }
 
-    private static void playerMenu(String username) {
+    private static void playerMenu(String username, Config config) {
         int command = 0;
+        boolean ex = true;
         do {
             System.out.println("1. Order Event");
             System.out.println("2. Event Ordered");
@@ -114,8 +131,12 @@ public class Main {
                     break;
                 case 4:
                     aboutMe();
+                case 5:
+                    config.saveExit();
+                    ex = false;
+                    return;
             }
-        } while (command != 5);
+        } while (ex == true);
     }
 
     private static void aboutMe() {
@@ -147,8 +168,9 @@ public class Main {
         transactions.add(new Transaction(username, idEvent, "sukses"));
     }
 
-    private static void organizerMenu() {
+    private static void organizerMenu(Config config) {
         int command = 0;
+        boolean ex = true;
         do {
             System.out.println("1. Create Event");
             System.out.println("2. My Event");
@@ -163,8 +185,12 @@ public class Main {
                 case 2:
                     showMyEvent();
                     break;
+                case 3:
+                    config.saveExit();
+                    ex = false;
+                    return;
             }
-        } while (command != 3);
+        } while (ex == true);
     }
 
     private static void showMyEvent() {
@@ -209,15 +235,15 @@ public class Main {
         do {
             System.out.println("Input Tanggal (1 - 31) : ");
             tgl = Integer.parseInt(scanner.nextLine());
-        } while (tgl >= 1 && tgl <= 31);
+        } while (tgl <= 1 || tgl >= 31);
         do {
             System.out.println("Input Bulan (1-12): ");
             bulan = Integer.parseInt(scanner.nextLine());
-        } while (bulan >= 1 && bulan <= 12);
+        } while (bulan <= 1 || bulan >= 12);
         do {
             System.out.println("Input Tahun : ");
             tahun = Integer.parseInt(scanner.nextLine());
-        } while (tahun >= 2021 && tahun <= 2030);
+        } while (tahun <= 2021 || tahun >= 2030);
         tglFull = tgl + "-" + bulan + "-" + tahun;
 
         System.out.println("Input Minimum Player : ");
@@ -251,7 +277,7 @@ public class Main {
                     blockAccount();
                     break;
                 case 3:
-                    makeAnnouncement();
+                    createAnnouncement();
                     break;
                 case 4:
                     registerPermission();
@@ -263,7 +289,7 @@ public class Main {
 
     }
 
-    private static void makeAnnouncement() {
+    private static void createAnnouncement() {
 
     }
 
