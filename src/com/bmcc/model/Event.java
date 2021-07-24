@@ -11,8 +11,9 @@ public class Event {
     private int max;
     private int price;
     private String status;
+    private String usernameOrganizer;
 
-    public Event(String id, String name, String sport, String level, String place,String tanggal, int min, int max, int price, String status) {
+    public Event(String id, String name, String sport, String level, String place,String tanggal, int min, int max, int price, String status, String usernameOrganizer) {
         this.id = id;
         this.name = name;
         this.sport = sport;
@@ -23,6 +24,15 @@ public class Event {
         this.tanggal = tanggal;
         this.price = price;
         this.status = status;
+        this.usernameOrganizer = usernameOrganizer;
+    }
+
+    public String getUsernameOrganizer() {
+        return usernameOrganizer;
+    }
+
+    public void setUsernameOrganizer(String usernameOrganizer) {
+        this.usernameOrganizer = usernameOrganizer;
     }
 
     public String getTanggal() {

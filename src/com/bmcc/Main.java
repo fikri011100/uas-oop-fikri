@@ -19,6 +19,7 @@ public class Main {
     private static ArrayList<Event> events;
     private static ArrayList<Transaction> transactions;
     private static ArrayList<Announcement> announcements;
+    private static ArrayList<Complaint> complaints;
 
     public static void main(String[] args) {
         // write your code here
@@ -31,8 +32,9 @@ public class Main {
         events = new ArrayList<>();
         transactions = new ArrayList<>();
         announcements = new ArrayList<>();
+        complaints = new ArrayList<>();
 
-        Config config = new Config(admins, player, organizers, events, transactions, announcements);
+        Config config = new Config(admins, player, organizers, events, transactions, announcements, complaints);
         if (!config.checkDataExist()) {
             config.addDefaultFile();
         }
@@ -42,9 +44,14 @@ public class Main {
         do {
             System.out.println("1. Register");
             System.out.println("2. Login");
-            System.out.println("Choose menu : ");
+            System.out.println("Choose menu [1 | 2]: ");
             choiceMenu = scanner.nextLine();
-        } while (!choiceMenu.equals("Register") && !choiceMenu.equals("Login"));
+        } while (!choiceMenu.equals("1") && !choiceMenu.equals("2"));
+        if (choiceMenu.equals("1")) {
+            choiceMenu = "Register";
+        } else {
+            choiceMenu = "Login";
+        }
 
         if (choiceMenu.equals("Register")) {
             //register
@@ -53,9 +60,14 @@ public class Main {
             do {
                 System.out.println("1. Organizer");
                 System.out.println("2. Player");
-                System.out.println("Choose Role : ");
+                System.out.println("Choose Role [1 | 2]: ");
                 choice = scanner.nextLine();
-            } while (!choice.equals("Organizer") && !choice.equals("Player"));
+            } while (!choice.equals("1") && !choice.equals("2"));
+            if (choice.equals("1")) {
+                choice = "Organizer";
+            } else {
+                choice = "Player";
+            }
             System.out.println("Enter Name");
             System.out.println(">>");
             name = scanner.nextLine();
@@ -70,41 +82,66 @@ public class Main {
             } else {
                 player.add(new Player(username, password, 0, 0, name));
             }
+
         } else {
             //login
+            boolean login = false;
             System.out.println("UAS FIKRI 2301886531");
             do {
                 System.out.println("====================");
                 System.out.println("1. Admin");
                 System.out.println("2. Organizer");
                 System.out.println("3. Player");
-                System.out.println("Choose Role : ");
+                System.out.println("Choose Role [1-3]: ");
                 choice = scanner.nextLine();
-            } while (!choice.equals("Admin") && !choice.equals("Organizer") && !choice.equals("Player"));
-            System.out.println("Enter Username");
-            System.out.println(">>");
-            username = scanner.nextLine();
-            System.out.println("Enter Password");
-            System.out.println(">>");
-            password = scanner.nextLine();
-            login(username, password, choice);
+            } while (!choice.equals("1") && !choice.equals("2") && !choice.equals("3"));
+            if (choice.equals("1"))
+                choice = "Admin";
+            else if (choice.equals("2"))
+                choice = "Organizer";
+            else
+                choice = "Player";
+            do {
+                System.out.println("Enter Username");
+                System.out.println(">>");
+                username = scanner.nextLine();
+                System.out.println("Enter Password");
+                System.out.println(">>");
+                password = scanner.nextLine();
+                login = login(username, password, choice);
+            } while (login == false);
         }
 
         //homepage
+        showAnnouncement();
         System.out.println("Welcome to Fikri's App");
         System.out.println("======================");
         System.out.println("Menu");
         if (choice.equals("Admin")) {
-            adminMenu();
+            adminMenu(config);
         } else if (choice.equals("Organizer")) {
-            organizerMenu(config);
+            organizerMenu(username, config);
         } else {
             playerMenu(username, config);
         }
     }
 
     private static void showEventAll() {
-
+        int temp = 1;
+        System.out.println("KEGIATAN ");
+        System.out.println("===============================================================================================================================================");
+        System.out.println("| No | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Min | Max | Harga       | Status     | Organizer       |");
+        System.out.println("===============================================================================================================================================");
+        for (Event e : events) {
+            Organizer org = null;
+            for (Organizer o : organizers) {
+                if (o.getUsername().equals(e.getUsernameOrganizer())) {
+                    org = o;
+                }
+            }
+            System.out.printf("| %-2d | %-15s | %-15s | %-10s | %-14s | %-11s | %-3d | %-3d | Rp. %-7d | %-10s | %-15s |\n", temp, e.getName(), e.getPlace(), e.getSport(), e.getLevel(), generateDateFormat(e.getTanggal()), e.getMin(), e.getMax(), e.getPrice(), e.getStatus(), org.getNama());
+            temp++;
+        }
     }
 
     private static void playerMenu(String username, Config config) {
@@ -139,6 +176,16 @@ public class Main {
         } while (ex == true);
     }
 
+    private static void showAnnouncement() {
+        if (announcements.size() > 0) {
+            Announcement ann = announcements.get(announcements.size() - 1);
+            System.out.println("PEMBERITAHUAN!!!!");
+            System.out.println(ann.getHeadline());
+            System.out.println(ann.getContent());
+            System.out.println("\n");
+        }
+    }
+
     private static void aboutMe() {
 
     }
@@ -166,9 +213,10 @@ public class Main {
             }
         } while (idEvent.equals(""));
         transactions.add(new Transaction(username, idEvent, "sukses"));
+        System.out.println("Berhasil!");
     }
 
-    private static void organizerMenu(Config config) {
+    private static void organizerMenu(String username, Config config) {
         int command = 0;
         boolean ex = true;
         do {
@@ -180,10 +228,10 @@ public class Main {
 
             switch (command) {
                 case 1:
-                    createEvent();
+                    createEvent(username);
                     break;
                 case 2:
-                    showMyEvent();
+                    showMyEvent(username);
                     break;
                 case 3:
                     config.saveExit();
@@ -193,8 +241,24 @@ public class Main {
         } while (ex == true);
     }
 
-    private static void showMyEvent() {
-
+    private static void showMyEvent(String username) {
+        int temp = 1;
+        System.out.println("KEGIATAN " + username);
+        System.out.println("============================================================================================================================");
+        System.out.println("| No | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Min | Max | Harga       | Status     |");
+        System.out.println("============================================================================================================================");
+        for (Event e : events) {
+            Organizer org = null;
+            for (Organizer o : organizers) {
+                if (o.getUsername().equals(username)) {
+                    org = o;
+                }
+            }
+            if (e.getUsernameOrganizer().equals(username)) {
+                System.out.printf("| %-2d | %-15s | %-15s | %-10s | %-14s | %-11s | %-3d | %-3d | Rp. %-7d | %-10s |\n", temp, e.getName(), e.getPlace(), e.getSport(), e.getLevel(), generateDateFormat(e.getTanggal()), e.getMin(), e.getMax(), e.getPrice(), e.getStatus());
+                temp++;
+            }
+        }
     }
 
     private static void getSport() {
@@ -212,7 +276,7 @@ public class Main {
         System.out.println("3. Advance");
     }
 
-    private static void createEvent() {
+    private static void createEvent(String username) {
         int min, max, price, tgl, bulan, tahun;
         String id, name, sport, level, place, status, tglFull;
 
@@ -255,11 +319,12 @@ public class Main {
         System.out.println("Input Price : ");
         price = Integer.parseInt(scanner.nextLine());
 
-        events.add(new Event(id, name, sport, level, place, tglFull, min, max, price, "Berjalan"));
+        events.add(new Event(id, name, sport, level, place, tglFull, min, max, price, "Berjalan", username));
     }
 
-    private static void adminMenu() {
+    private static void adminMenu(Config config) {
         int command = 0;
+        boolean ex = true;
         do {
             System.out.println("1. Pengaduan");
             System.out.println("2. Blokir Akun");
@@ -281,27 +346,191 @@ public class Main {
                     break;
                 case 4:
                     registerPermission();
+                    break;
+                case 5:
+                    config.saveExit();
+                    ex = false;
+                    return;
             }
-        } while (command != 5);
+        } while (ex == true);
     }
 
     private static void registerPermission() {
+        String input, usernameRegis;
+        do {
+            System.out.println("1. Organizer");
+            System.out.println("2. Player");
+            System.out.println("Enter Type [1-2]: ");
+            input = scanner.nextLine();
+        } while (!input.equals("1") && !input.equals("2"));
+        if (input.equals("1")) {
+            if (organizers.size() > 0) {
+                Organizer organizer = null;
 
+                System.out.println("DATA AKUN ORGANIZER");
+                System.out.println("| username        | nama            |");
+                for (Organizer org : organizers) {
+                    System.out.printf("| %-15s | %-15s |\n", org.getUsername(), org.getNama());
+                }
+                System.out.println("enter username : ");
+                usernameRegis = scanner.nextLine();
+                for (Organizer org : organizers) {
+                    if (org.getUsername().equals(usernameRegis)) {
+                        organizer = org;
+                    }
+                }
+                if (organizer == null) {
+                    System.out.println("Tidak ada Username " + usernameRegis);
+                    return;
+                }
+                organizer.setStatus(1);
+                System.out.println("Berhasil!");
+            } else {
+                System.out.println("No Data");
+            }
+        } else {
+            if (player.size() > 0) {
+                Player pl = null;
+
+                System.out.println("DATA AKUN PLAYER");
+                System.out.println("| username        | nama            |");
+                for (Player player : player) {
+                    System.out.printf("| %-15s | %-15s |\n", player.getUsername(), player.getNama());
+                }
+                System.out.println("enter username : ");
+                usernameRegis = scanner.nextLine();
+                for (Player player : player) {
+                    if (player.getUsername().equals(usernameRegis)) {
+                        pl = player;
+                    }
+                }
+                if (pl == null) {
+                    System.out.println("Tidak ada Username " + usernameRegis);
+                    return;
+                }
+                pl.setStatus(1);
+                System.out.println("Berhasil!");
+            } else {
+                System.out.println("No Data");
+            }
+        }
     }
 
     private static void createAnnouncement() {
+        String header, content;
 
+        System.out.println("Enter Header: ");
+        header = scanner.nextLine();
+
+        System.out.println("Enter Content: ");
+        content = scanner.nextLine();
+
+        announcements.add(new Announcement(header, content));
     }
 
     private static void blockAccount() {
+        String input, blocked;
+        do {
+            System.out.println("1. Organizer");
+            System.out.println("2. Player");
+            System.out.println("Enter Type [1-2]: ");
+            input = scanner.nextLine();
+        } while (!input.equals("1") && !input.equals("2"));
+        if (input.equals("1")) {
+            if (organizers.size() > 0) {
+                Organizer organizer = null;
 
+                System.out.println("DATA BLOKIR AKUN ORGANIZER");
+                System.out.println("| username        | nama            |");
+                for (Organizer org : organizers) {
+                    System.out.printf("| %-15s | %-15s |\n", org.getUsername(), org.getNama());
+                }
+                System.out.println("enter username : ");
+                blocked = scanner.nextLine();
+                for (Organizer org : organizers) {
+                    if (org.getUsername().equals(blocked)) {
+                        organizer = org;
+                    }
+                }
+                if (organizer == null) {
+                    System.out.println("Tidak ada Username " + blocked);
+                    return;
+                }
+                organizer.setStatus(2);
+                System.out.println("Berhasil!");
+            } else {
+                System.out.println("No Data");
+            }
+        } else {
+            if (player.size() > 0) {
+                Player pl = null;
+
+                System.out.println("DATA BLOKIR AKUN PLAYER");
+                System.out.println("| username        | nama            |");
+                for (Player player : player) {
+                    System.out.printf("| %-15s | %-15s |\n", player.getUsername(), player.getNama());
+                }
+                System.out.println("enter username : ");
+                blocked = scanner.nextLine();
+                for (Player player : player) {
+                    if (player.getUsername().equals(blocked)) {
+                        pl = player;
+                    }
+                }
+                if (pl == null) {
+                    System.out.println("Tidak ada Username " + blocked);
+                    return;
+                }
+                pl.setStatus(2);
+                System.out.println("Berhasil!");
+            } else {
+                System.out.println("No Data");
+            }
+        }
     }
 
     private static void showPengaduan() {
+        if (complaints.size() > 0) {
+            System.out.println("DATA PENGADUAN");
+            System.out.println("| name            | pengaduan        ");
+            for (Complaint com : complaints) {
+                System.out.printf("| %15s | %15s |\n", com.getUsername(), com.getComplaint());
+            }
+        }
     }
 
-    private static void login(String username, String password, String choice) {
-
+    private static boolean login(String username, String password, String choice) {
+        boolean stat = false;
+        if (choice.equals("Admin")) {
+            for (Admin admin : admins) {
+                stat = true;
+            }
+        } else if (choice.equals("Organizer")) {
+            for (Organizer organizer : organizers) {
+                if (organizer.getUsername().equals(username) && organizer.getPassword().equals(password)) {
+                    if (organizer.getStatus() == 1) {
+                        stat = true;
+                    } else if (organizer.getStatus() == 0) {
+                        System.out.println("Akun belum ter-verifikasi");
+                    } else {
+                        System.out.println("Akun ter-blokir");
+                    }
+                }
+            }
+        } else {
+            for (Player player : player) {
+                if (player.getUsername().equals(username) && player.getPassword().equals(password)) {
+                    if (player.getStatus() == 1) {
+                        stat = true;
+                    } else if (player.getStatus() == 0) {
+                        System.out.println("Akun belum ter-verifikasi");
+                    } else {
+                        System.out.println("Akun ter-blokir");
+                    }
+                }
+            }
+        }
+        return stat;
     }
 
     private static String generateRandomString() {

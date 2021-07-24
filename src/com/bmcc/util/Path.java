@@ -7,4 +7,5 @@ public class Path {
     public static final String ORGANIZER_PATH = "organizer.json";
     public static final String PLAYER_PATH = "player.json";
     public static final String TRANSACTION_PATH = "transaction.json";
+    public static final String COMPLAINT_PATH = "complaint.json";
 }

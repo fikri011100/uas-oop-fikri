@@ -19,14 +19,16 @@ public class Config {
     private final ArrayList<Event> events;
     private final ArrayList<Transaction> transactions;
     private final ArrayList<Announcement> announcements;
+    private final ArrayList<Complaint> complaints;
 
-    public Config(ArrayList<Admin> admins, ArrayList<Player> player, ArrayList<Organizer> organizers, ArrayList<Event> events, ArrayList<Transaction> transactions, ArrayList<Announcement> announcements) {
+    public Config(ArrayList<Admin> admins, ArrayList<Player> player, ArrayList<Organizer> organizers, ArrayList<Event> events, ArrayList<Transaction> transactions, ArrayList<Announcement> announcements, ArrayList<Complaint> complaints) {
         this.admins = admins;
         this.player = player;
         this.organizers = organizers;
         this.events = events;
         this.transactions = transactions;
         this.announcements = announcements;
+        this.complaints = complaints;
     }
 
     public boolean checkDataExist() {
@@ -51,6 +53,9 @@ public class Config {
         }
         if (new File(Path.ANNOUNCEMENT_PATH).exists()) {
             readJson(Path.ANNOUNCEMENT_PATH);
+        }
+        if (new File(Path.COMPLAINT_PATH).exists()) {
+            readJson(Path.COMPLAINT_PATH);
         }
     }
 
@@ -92,11 +97,25 @@ public class Config {
                         getJsonAnnouncement((JSONObject) o);
                     });
                     break;
+                case Path.COMPLAINT_PATH:
+                    arr.forEach(o -> {
+                        getJsonComplaint((JSONObject) o);
+                    });
+                    break;
             }
 
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getJsonComplaint(JSONObject o) {
+        JSONObject obj = (JSONObject) o.get("complaint");
+
+        String username = (String) obj.get("username");
+        String complaint = (String) obj.get("complaint");
+
+        complaints.add(new Complaint(username, complaint));
     }
 
     private void getJsonAnnouncement(JSONObject object) {
@@ -127,11 +146,12 @@ public class Config {
         String level = (String) obj.get("level");
         String place = (String) obj.get("place");
         String tanggal = (String) obj.get("tanggal");
-        int min = (int) obj.get("min");
-        int max = (int) obj.get("max");
-        int price = (int) obj.get("price");
+        int min = Integer.parseInt(String.valueOf(obj.get("min")));
+        int max = Integer.parseInt(String.valueOf(obj.get("max")));
+        int price = Integer.parseInt(String.valueOf(obj.get("price")));
         String status = (String) obj.get("status");
-        events.add(new Event(idEvent, name, sport, level, place, tanggal, min, max, price, status ));
+        String usernameOrganizer = (String) obj.get("usernameOrganizer");
+        events.add(new Event(idEvent, name, sport, level, place, tanggal, min, max, price, status , usernameOrganizer));
     }
 
     private void getJsonOrganizer(JSONObject object) {
@@ -139,7 +159,7 @@ public class Config {
 
         String username = (String) obj.get("username");
         String password = (String) obj.get("password");
-        int status = (int) obj.get("status");
+        int status = Integer.parseInt(String.valueOf(obj.get("status")));
         String nama = (String) obj.get("nama");
 
         organizers.add(new Organizer(username, password, status, nama));
@@ -150,17 +170,17 @@ public class Config {
 
         String username = (String) obj.get("username");
         String password = (String) obj.get("password");
-        int status = (int) obj.get("status");
-        int jumlahPertandingan = (int) obj.get("jumlahPertandingan");
+        int status =  Integer.parseInt(String.valueOf(obj.get("status")));
+        int jumlahPertandingan = Integer.parseInt(String.valueOf(obj.get("jumlahPertandingan")));
         String nama = (String) obj.get("nama");
 
         player.add(new Player(username, password, status, jumlahPertandingan, nama));
     }
 
     private void getJsonAdmin(JSONObject object) {
-        JSONObject obj = (JSONObject) object.get("player");
+        JSONObject obj = (JSONObject) object.get("admin");
 
-        String name = (String) obj.get("name");
+        String name = (String) obj.get("username");
         String password = (String) obj.get("password");
 
         admins.add(new Admin(name, password));
@@ -249,6 +269,7 @@ public class Config {
                 obj.put("max", event.getMax());
                 obj.put("price", event.getPrice());
                 obj.put("status", event.getStatus());
+                obj.put("usernameOrganizer", event.getUsernameOrganizer());
 
                 JSONObject objects = new JSONObject();
                 objects.put("event", obj);
@@ -295,6 +316,26 @@ public class Config {
                 arr.add(objects);
             }
             try (FileWriter fr = new FileWriter(Path.ANNOUNCEMENT_PATH)){
+                fr.write(arr.toJSONString());
+                fr.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!complaints.isEmpty()) {
+            arr = new JSONArray();
+
+            for (Complaint com : complaints) {
+                JSONObject obj = new JSONObject();
+                obj.put("username", com.getUsername());
+                obj.put("complaint", com.getComplaint());
+
+                JSONObject objects = new JSONObject();
+                objects.put("complaint", obj);
+                arr.add(objects);
+            }
+            try (FileWriter fr = new FileWriter(Path.COMPLAINT_PATH)){
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
