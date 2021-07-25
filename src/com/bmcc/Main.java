@@ -20,6 +20,7 @@ public class Main {
     private static ArrayList<Transaction> transactions;
     private static ArrayList<Announcement> announcements;
     private static ArrayList<Complaint> complaints;
+    private static  ArrayList<Lencana> lencanas;
 
     public static void main(String[] args) {
         // write your code here
@@ -33,8 +34,9 @@ public class Main {
         transactions = new ArrayList<>();
         announcements = new ArrayList<>();
         complaints = new ArrayList<>();
+        lencanas = new ArrayList<>();
 
-        Config config = new Config(admins, player, organizers, events, transactions, announcements, complaints);
+        Config config = new Config(admins, player, organizers, events, transactions, announcements, complaints, lencanas);
         if (!config.checkDataExist()) {
             config.addDefaultFile();
         }
@@ -161,10 +163,10 @@ public class Main {
                     orderEvent(username);
                     break;
                 case 2:
-                    showEventOrdered();
+                    showEventOrdered(username);
                     break;
                 case 3:
-                    cancelOrder();
+                    cancelOrder(username);
                     break;
                 case 4:
                     aboutMe();
@@ -190,28 +192,93 @@ public class Main {
 
     }
 
-    private static void cancelOrder() {
-
+    private static void cancelOrder(String username) {
+        String id = null, idEvent;
+        System.out.println("KEGIATAN ");
+        System.out.println("=====================================================================================================================================");
+        System.out.println("| Id    | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Organizer       | Harga       | Status     |");
+        System.out.println("=====================================================================================================================================");
+        for (Transaction tr : transactions) {
+            Event event = null;
+            for (Event e : events) {
+                if (tr.getIdEvent().equals(e.getId())) {
+                    event = e;
+                }
+            }
+            Organizer org = null;
+            for (Organizer o : organizers) {
+                if (o.getUsername().equals(event.getUsernameOrganizer())) {
+                    org = o;
+                }
+            }
+            if (tr.getUsernamePlayer().equals(username)) {
+                System.out.printf("| %-5s | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s |\n", event.getId(), event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus());
+            }
+        }
+        System.out.println("=====================================================================================================================================");
+        do {
+            System.out.println("\nInsert ID Event : ");
+            idEvent = scanner.nextLine();
+            for (Transaction tr : transactions) {
+                if (tr.getIdEvent().equals(idEvent)) {
+                    id = tr.getIdEvent();
+                    tr.setStatus("dibatalkan");
+                }
+            }
+        } while (id == null);
+        System.out.println("Berhasil!");
     }
 
-    private static void showEventOrdered() {
-
+    private static void showEventOrdered(String username) {
+        int temp = 1;
+        System.out.println("KEGIATAN ");
+        System.out.println("==================================================================================================================================");
+        System.out.println("| No | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Organizer       | Harga       | Status     |");
+        System.out.println("==================================================================================================================================");
+        for (Transaction tr : transactions) {
+            Event event = null;
+            for (Event e : events) {
+                if (tr.getIdEvent().equals(e.getId())) {
+                    event = e;
+                }
+            }
+            Organizer org = null;
+            for (Organizer o : organizers) {
+                if (o.getUsername().equals(event.getUsernameOrganizer())) {
+                    org = o;
+                }
+            }
+            if (tr.getUsernamePlayer().equals(username)) {
+                System.out.printf("| %-2d | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s |\n", temp, event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus());
+                temp++;
+            }
+        }
+        System.out.println("==================================================================================================================================");
     }
 
     private static void orderEvent(String username) {
         int numberEvent;
-        String idEvent = "";
+        String idEvent = null;
         showEventAll();
-        System.out.println("\nInsert Number Event : ");
-        numberEvent = Integer.parseInt(scanner.nextLine());
 
         do {
+            System.out.println("\nInsert Number Event : ");
+            numberEvent = Integer.parseInt(scanner.nextLine());
             for (int i = 1; i < events.size(); i++) {
                 if (numberEvent == i) {
-                    idEvent = events.get(i).getId();
+                    Event ev = events.get(i - 1);
+                    Player pl = null;
+                    idEvent = ev.getId();
+                    ev.increaseCount();
+                    for (Player player : player) {
+                        if (player.getUsername().equals(username)) {
+                            pl = player;
+                        }
+                    }
+                    pl.increaseMatch();
                 }
             }
-        } while (idEvent.equals(""));
+        } while (idEvent == null);
         transactions.add(new Transaction(username, idEvent, "sukses"));
         System.out.println("Berhasil!");
     }
@@ -319,7 +386,7 @@ public class Main {
         System.out.println("Input Price : ");
         price = Integer.parseInt(scanner.nextLine());
 
-        events.add(new Event(id, name, sport, level, place, tglFull, min, max, price, "Berjalan", username));
+        events.add(new Event(id, name, sport, level, place, tglFull, min, max, price, 0, "Berjalan", username));
     }
 
     private static void adminMenu(Config config) {

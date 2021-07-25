@@ -1,6 +1,8 @@
 package com.bmcc.model;
 
-public class Player extends User{
+import com.bmcc.view.MatchCount;
+
+public class Player extends User implements MatchCount {
 
     private int status;
     private int jumlahPertandingan;
@@ -39,5 +41,27 @@ public class Player extends User{
 
     public void setNama(String nama) {
         this.nama = nama;
+    }
+
+    public String getLevel(int match) {
+        String result;
+        if (match > 1 && match < 5) {
+            result = "Beginner";
+        } else if (match > 6 && match < 10) {
+            result = "Intermediate";
+        } else {
+            result = "Advance";
+        }
+        return result;
+    }
+
+    @Override
+    public void increaseMatch() {
+        jumlahPertandingan++;
+    }
+
+    @Override
+    public void decreaseMatch() {
+        jumlahPertandingan--;
     }
 }

@@ -20,8 +20,9 @@ public class Config {
     private final ArrayList<Transaction> transactions;
     private final ArrayList<Announcement> announcements;
     private final ArrayList<Complaint> complaints;
+    private final ArrayList<Lencana> lencanas;
 
-    public Config(ArrayList<Admin> admins, ArrayList<Player> player, ArrayList<Organizer> organizers, ArrayList<Event> events, ArrayList<Transaction> transactions, ArrayList<Announcement> announcements, ArrayList<Complaint> complaints) {
+    public Config(ArrayList<Admin> admins, ArrayList<Player> player, ArrayList<Organizer> organizers, ArrayList<Event> events, ArrayList<Transaction> transactions, ArrayList<Announcement> announcements, ArrayList<Complaint> complaints, ArrayList<Lencana> lencana) {
         this.admins = admins;
         this.player = player;
         this.organizers = organizers;
@@ -29,10 +30,11 @@ public class Config {
         this.transactions = transactions;
         this.announcements = announcements;
         this.complaints = complaints;
+        this.lencanas = lencana;
     }
 
     public boolean checkDataExist() {
-        return !admins.isEmpty() && !player.isEmpty() && !organizers.isEmpty() && !events.isEmpty() && !transactions.isEmpty() && !announcements.isEmpty();
+        return !admins.isEmpty() && !player.isEmpty() && !organizers.isEmpty() && !events.isEmpty() && !transactions.isEmpty() && !announcements.isEmpty() && !lencanas.isEmpty();
     }
 
     public void addDefaultFile() {
@@ -57,56 +59,57 @@ public class Config {
         if (new File(Path.COMPLAINT_PATH).exists()) {
             readJson(Path.COMPLAINT_PATH);
         }
+        if (new File(Path.LENCANA_PATH).exists()) {
+            readJson(Path.LENCANA_PATH);
+        }
     }
 
     private void readJson(String filename) {
         JSONParser json = new JSONParser();
 
-        try(FileReader file = new FileReader(filename)) {
+        try (FileReader file = new FileReader(filename)) {
             Object object = json.parse(file);
             JSONArray arr = (JSONArray) object;
 
             switch (filename) {
                 case Path.ADMIN_PATH:
-                    arr.forEach(o -> {
-                        getJsonAdmin((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonAdmin((JSONObject) o));
                     break;
                 case Path.PLAYER_PATH:
-                    arr.forEach(o -> {
-                        getJsonPlayer((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonPlayer((JSONObject) o));
                     break;
                 case Path.ORGANIZER_PATH:
-                    arr.forEach(o -> {
-                        getJsonOrganizer((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonOrganizer((JSONObject) o));
                     break;
                 case Path.EVENT_PATH:
-                    arr.forEach(o -> {
-                        getJsonEvent((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonEvent((JSONObject) o));
                     break;
                 case Path.TRANSACTION_PATH:
-                    arr.forEach(o -> {
-                        getJsonTransaction((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonTransaction((JSONObject) o));
                     break;
                 case Path.ANNOUNCEMENT_PATH:
-                    arr.forEach(o -> {
-                        getJsonAnnouncement((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonAnnouncement((JSONObject) o));
                     break;
                 case Path.COMPLAINT_PATH:
-                    arr.forEach(o -> {
-                        getJsonComplaint((JSONObject) o);
-                    });
+                    arr.forEach(o -> getJsonComplaint((JSONObject) o));
+                    break;
+                case Path.LENCANA_PATH:
+                    arr.forEach(o -> getJsonLencana((JSONObject) o));
                     break;
             }
 
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getJsonLencana(JSONObject o) {
+        JSONObject obj = (JSONObject) o.get("lencana");
+
+        String username = (String) obj.get("username");
+        String lencana = (String) obj.get("lencana");
+
+        lencanas.add(new Lencana(username, lencana));
     }
 
     private void getJsonComplaint(JSONObject o) {
@@ -149,9 +152,10 @@ public class Config {
         int min = Integer.parseInt(String.valueOf(obj.get("min")));
         int max = Integer.parseInt(String.valueOf(obj.get("max")));
         int price = Integer.parseInt(String.valueOf(obj.get("price")));
+        int ordered = Integer.parseInt(String.valueOf(obj.get("ordered")));
         String status = (String) obj.get("status");
         String usernameOrganizer = (String) obj.get("usernameOrganizer");
-        events.add(new Event(idEvent, name, sport, level, place, tanggal, min, max, price, status , usernameOrganizer));
+        events.add(new Event(idEvent, name, sport, level, place, tanggal, min, max, price, ordered, status, usernameOrganizer));
     }
 
     private void getJsonOrganizer(JSONObject object) {
@@ -170,7 +174,7 @@ public class Config {
 
         String username = (String) obj.get("username");
         String password = (String) obj.get("password");
-        int status =  Integer.parseInt(String.valueOf(obj.get("status")));
+        int status = Integer.parseInt(String.valueOf(obj.get("status")));
         int jumlahPertandingan = Integer.parseInt(String.valueOf(obj.get("jumlahPertandingan")));
         String nama = (String) obj.get("nama");
 
@@ -201,7 +205,7 @@ public class Config {
                 object.put("admin", obj);
                 arr.add(object);
             }
-            try (FileWriter fr = new FileWriter(Path.ADMIN_PATH)){
+            try (FileWriter fr = new FileWriter(Path.ADMIN_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -224,7 +228,7 @@ public class Config {
                 object.put("player", obj);
                 arr.add(object);
             }
-            try (FileWriter fr = new FileWriter(Path.PLAYER_PATH)){
+            try (FileWriter fr = new FileWriter(Path.PLAYER_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -246,7 +250,7 @@ public class Config {
                 object.put("organizer", obj);
                 arr.add(object);
             }
-            try (FileWriter fr = new FileWriter(Path.ORGANIZER_PATH)){
+            try (FileWriter fr = new FileWriter(Path.ORGANIZER_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -268,6 +272,7 @@ public class Config {
                 obj.put("min", event.getMin());
                 obj.put("max", event.getMax());
                 obj.put("price", event.getPrice());
+                obj.put("ordered", event.getOrdered());
                 obj.put("status", event.getStatus());
                 obj.put("usernameOrganizer", event.getUsernameOrganizer());
 
@@ -275,7 +280,7 @@ public class Config {
                 objects.put("event", obj);
                 arr.add(objects);
             }
-            try (FileWriter fr = new FileWriter(Path.EVENT_PATH)){
+            try (FileWriter fr = new FileWriter(Path.EVENT_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -296,7 +301,7 @@ public class Config {
                 objects.put("transaction", obj);
                 arr.add(objects);
             }
-            try (FileWriter fr = new FileWriter(Path.TRANSACTION_PATH)){
+            try (FileWriter fr = new FileWriter(Path.TRANSACTION_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -315,7 +320,7 @@ public class Config {
                 objects.put("announcement", obj);
                 arr.add(objects);
             }
-            try (FileWriter fr = new FileWriter(Path.ANNOUNCEMENT_PATH)){
+            try (FileWriter fr = new FileWriter(Path.ANNOUNCEMENT_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {
@@ -335,7 +340,27 @@ public class Config {
                 objects.put("complaint", obj);
                 arr.add(objects);
             }
-            try (FileWriter fr = new FileWriter(Path.COMPLAINT_PATH)){
+            try (FileWriter fr = new FileWriter(Path.COMPLAINT_PATH)) {
+                fr.write(arr.toJSONString());
+                fr.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!lencanas.isEmpty()) {
+            arr = new JSONArray();
+
+            for (Lencana com : lencanas) {
+                JSONObject obj = new JSONObject();
+                obj.put("username", com.getUsername());
+                obj.put("lencana", com.getLencana());
+
+                JSONObject objects = new JSONObject();
+                objects.put("lencana", obj);
+                arr.add(objects);
+            }
+            try (FileWriter fr = new FileWriter(Path.LENCANA_PATH)) {
                 fr.write(arr.toJSONString());
                 fr.flush();
             } catch (IOException e) {

@@ -1,6 +1,8 @@
 package com.bmcc.model;
 
-public class Event {
+import com.bmcc.view.EventCount;
+
+public class Event implements EventCount {
     private String id;
     private String name;
     private String sport;
@@ -10,10 +12,11 @@ public class Event {
     private int min;
     private int max;
     private int price;
+    private int ordered;
     private String status;
     private String usernameOrganizer;
 
-    public Event(String id, String name, String sport, String level, String place,String tanggal, int min, int max, int price, String status, String usernameOrganizer) {
+    public Event(String id, String name, String sport, String level, String place,String tanggal, int min, int max, int price,int ordered, String status, String usernameOrganizer) {
         this.id = id;
         this.name = name;
         this.sport = sport;
@@ -23,8 +26,17 @@ public class Event {
         this.max = max;
         this.tanggal = tanggal;
         this.price = price;
+        this.ordered = ordered;
         this.status = status;
         this.usernameOrganizer = usernameOrganizer;
+    }
+
+    public int getOrdered() {
+        return ordered;
+    }
+
+    public void setOredered(int ordered) {
+        this.ordered = ordered;
     }
 
     public String getUsernameOrganizer() {
@@ -113,5 +125,15 @@ public class Event {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public void increaseCount() {
+        ordered++;
+    }
+
+    @Override
+    public void decreaseCount() {
+        ordered--;
     }
 }
