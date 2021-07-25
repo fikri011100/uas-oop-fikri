@@ -20,7 +20,7 @@ public class Main {
     private static ArrayList<Transaction> transactions;
     private static ArrayList<Announcement> announcements;
     private static ArrayList<Complaint> complaints;
-    private static  ArrayList<Lencana> lencanas;
+    private static ArrayList<Lencana> lencanas;
 
     public static void main(String[] args) {
         // write your code here
@@ -154,7 +154,8 @@ public class Main {
             System.out.println("2. Event Ordered");
             System.out.println("3. Cancel Order");
             System.out.println("4. About Me");
-            System.out.println("5. Exit");
+            System.out.println("5. Give Lencana");
+            System.out.println("6. Exit");
             System.out.println(">>");
             command = Integer.parseInt(scanner.nextLine());
 
@@ -169,13 +170,40 @@ public class Main {
                     cancelOrder(username);
                     break;
                 case 4:
-                    aboutMe();
+                    aboutMe(username);
+                    break;
                 case 5:
+                    giveLencana();
+                    break;
+                case 6:
                     config.saveExit();
                     ex = false;
                     return;
             }
         } while (ex == true);
+    }
+
+    private static void giveLencana() {
+        if (player.size() > 0) {
+            String lencana, username = null, user;
+            System.out.println("| Nama            | Username        |");
+            for (Player pl : player) {
+                System.out.printf("| %-15s | %-15s |\n", pl.getNama(), pl.getUsername());
+            }
+            do {
+                System.out.println("Input Username : ");
+                user = scanner.nextLine();
+                for (Player pl : player) {
+                    if (pl.getUsername().equals(user))
+                        username = pl.getUsername();
+                }
+            } while (user == null);
+
+            System.out.println("Input Lencana : ");
+            lencana = scanner.nextLine();
+
+            lencanas.add(new Lencana(username, lencana));
+        }
     }
 
     private static void showAnnouncement() {
@@ -188,8 +216,26 @@ public class Main {
         }
     }
 
-    private static void aboutMe() {
-
+    private static void aboutMe(String username) {
+        String level = "";
+        int temp = 1;
+        for (Player pl : player) {
+            if (pl.getUsername().equals(username)) {
+                level = pl.getLevel(pl.getJumlahPertandingan());
+                System.out.println("====================");
+                System.out.println("======ABOUT ME======");
+                System.out.println("====================");
+                System.out.printf("|Level : %s\n", level);
+                System.out.println("|Lencana            |");
+                for (Lencana len : lencanas) {
+                    if (len.getUsername().equals(username)) {
+                        System.out.println("| " + temp + " " + len.getLencana());
+                    }
+                    temp++;
+                }
+                System.out.println("====================\n");
+            }
+        }
     }
 
     private static void cancelOrder(String username) {
@@ -199,20 +245,22 @@ public class Main {
         System.out.println("| Id    | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Organizer       | Harga       | Status     |");
         System.out.println("=====================================================================================================================================");
         for (Transaction tr : transactions) {
-            Event event = null;
-            for (Event e : events) {
-                if (tr.getIdEvent().equals(e.getId())) {
-                    event = e;
+            if (!tr.getStatus().equals("dibatalkan")) {
+                Event event = null;
+                for (Event e : events) {
+                    if (tr.getIdEvent().equals(e.getId())) {
+                        event = e;
+                    }
                 }
-            }
-            Organizer org = null;
-            for (Organizer o : organizers) {
-                if (o.getUsername().equals(event.getUsernameOrganizer())) {
-                    org = o;
+                Organizer org = null;
+                for (Organizer o : organizers) {
+                    if (o.getUsername().equals(event.getUsernameOrganizer())) {
+                        org = o;
+                    }
                 }
-            }
-            if (tr.getUsernamePlayer().equals(username)) {
-                System.out.printf("| %-5s | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s |\n", event.getId(), event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus());
+                if (tr.getUsernamePlayer().equals(username)) {
+                    System.out.printf("| %-5s | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s |\n", event.getId(), event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus());
+                }
             }
         }
         System.out.println("=====================================================================================================================================");
@@ -232,9 +280,9 @@ public class Main {
     private static void showEventOrdered(String username) {
         int temp = 1;
         System.out.println("KEGIATAN ");
-        System.out.println("==================================================================================================================================");
-        System.out.println("| No | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Organizer       | Harga       | Status     |");
-        System.out.println("==================================================================================================================================");
+        System.out.println("===============================================================================================================================================");
+        System.out.println("| No | Nama            | Tempat          | Jenis      | Level          | Tanggal     | Organizer       | Harga       | Status     | Pesanan   |");
+        System.out.println("===============================================================================================================================================");
         for (Transaction tr : transactions) {
             Event event = null;
             for (Event e : events) {
@@ -249,11 +297,11 @@ public class Main {
                 }
             }
             if (tr.getUsernamePlayer().equals(username)) {
-                System.out.printf("| %-2d | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s |\n", temp, event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus());
+                System.out.printf("| %-2d | %-15s | %-15s | %-10s | %-14s | %-11s | %-15s | Rp. %-7d | %-10s | %-10s |\n", temp, event.getName(), event.getPlace(), event.getSport(), event.getLevel(), generateDateFormat(event.getTanggal()), org.getNama(), event.getPrice(), event.getStatus(), tr.getStatus());
                 temp++;
             }
         }
-        System.out.println("==================================================================================================================================");
+        System.out.println("===============================================================================================================================================");
     }
 
     private static void orderEvent(String username) {

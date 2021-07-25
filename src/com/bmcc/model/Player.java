@@ -45,7 +45,7 @@ public class Player extends User implements MatchCount {
 
     public String getLevel(int match) {
         String result;
-        if (match > 1 && match < 5) {
+        if (match > 0 && match < 5) {
             result = "Beginner";
         } else if (match > 6 && match < 10) {
             result = "Intermediate";
